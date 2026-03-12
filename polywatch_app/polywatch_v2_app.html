@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="PolyWatch">
+  <meta name="theme-color" content="#ffffff">
+  <title>PolyWatch</title>
+  <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #ffffff;
+      --bg2:       #f7f7f7;
+      --bg3:       #f0f0f0;
+      --border:    #e8e8e8;
+      --text:      #0a0a0a;
+      --text2:     #666666;
+      --text3:     #999999;
+      --green:     #00c805;
+      --red:       #ff3b30;
+      --amber:     #ff9500;
+      --blue:      #007aff;
+      --safe-top:  env(safe-area-inset-top);
+      --safe-bot:  env(safe-area-inset-bottom);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      padding-top: var(--safe-top);
+      max-width: 430px;
+      margin: 0 auto;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: var(--bg);
+    }
+
+    .logo {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: var(--text);
+    }
+
+    .logo span { color: var(--green); }
+
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+
+    .live-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--bg2);
+      border-radius: 20px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text2);
+      cursor: pointer;
+      border: none;
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text3);
+    }
+    .live-dot.on { background: var(--green); animation: blink 2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .scan-btn {
+      background: var(--text);
+      color: var(--bg);
+      border: none;
+      border-radius: 20px;
+      padding: 7px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .scan-btn:active { opacity: 0.7; }
+    .scan-btn:disabled { opacity: 0.35; }
+
+    /* ── SUMMARY CARD ── */
+    .summary {
+      margin: 0 20px 16px;
+      background: var(--bg2);
+      border-radius: 16px;
+      padding: 16px 20px;
+    }
+
+    .summary-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text3);
+      margin-bottom: 4px;
+    }
+
+    .summary-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .summary-main {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .summary-sub {
+      font-size: 13px;
+      color: var(--text2);
+    }
+
+    .summary-stats {
+      display: flex;
+      gap: 20px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .summary-stat { display: flex; flex-direction: column; gap: 2px; }
+    .summary-stat-val { font-size: 15px; font-weight: 600; }
+    .summary-stat-label { font-size: 11px; color: var(--text3); }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      padding: 0 20px;
+      gap: 4px;
+      margin-bottom: 4px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      flex-shrink: 0;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+
+    .tab {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text3);
+      padding: 7px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .tab.active {
+      background: var(--text);
+      color: var(--bg);
+      font-weight: 600;
+    }
+
+    /* ── CONTENT ── */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: calc(72px + var(--safe-bot));
+    }
+    .content::-webkit-scrollbar { display: none; }
+
+    /* ── SECTION HEADER ── */
+    .section-header {
+      padding: 16px 20px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text3);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* ── ALERT ROW ── */
+    .alert-row {
+      display: flex;
+      align-items: center;
+      padding: 14px 20px;
+      gap: 14px;
+      cursor: pointer;
+      transition: background 0.1s;
+      border-bottom: 1px solid var(--border);
+    }
+    .alert-row:active { background: var(--bg2); }
+
+    .alert-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--bg2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .alert-icon.critical { background: rgba(255,59,48,0.1); }
+    .alert-icon.high     { background: rgba(255,59,48,0.07); }
+    .alert-icon.medium   { background: rgba(255,149,0,0.1); }
+
+    .alert-body { flex: 1; min-width: 0; }
+
+    .alert-title {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 3px;
+    }
+
+    .alert-subtitle {
+      font-size: 12px;
+      color: var(--text2);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .alert-dot { color: var(--text3); font-size: 8px; }
+
+    .alert-right { text-align: right; flex-shrink: 0; }
+
+    .alert-score {
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .alert-score.critical { color: var(--red); }
+    .alert-score.high     { color: var(--red); }
+    .alert-score.medium   { color: var(--amber); }
+
+    .alert-level {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text3);
+      margin-top: 1px;
+    }
+
+    /* ── DETAIL SHEET ── */
+    .sheet-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      z-index: 50;
+      display: none;
+      align-items: flex-end;
+    }
+    .sheet-overlay.open { display: flex; }
+
+    .sheet {
+      background: var(--bg);
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-width: 430px;
+      margin: 0 auto;
+      padding-bottom: calc(32px + var(--safe-bot));
+      max-height: 90dvh;
+      overflow-y: auto;
+      animation: sheetUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    @keyframes sheetUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+
+    .sheet-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--bg3);
+      border-radius: 2px;
+      margin: 12px auto 20px;
+    }
+
+    .sheet-header {
+      padding: 0 20px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sheet-market {
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+
+    .sheet-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .sheet-chip {
+      background: var(--bg2);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text2);
+    }
+
+    .sheet-chip.green { background: rgba(0,200,5,0.08); color: #00a004; }
+    .sheet-chip.red   { background: rgba(255,59,48,0.08); color: var(--red); }
+
+    .sheet-section { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+
+    .sheet-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 12px;
+    }
+
+    .sheet-signals { display: flex; flex-direction: column; gap: 10px; }
+
+    .signal-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .signal-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--bg2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .signal-text { font-size: 13px; font-weight: 500; }
+    .signal-sub  { font-size: 11px; color: var(--text3); }
+
+    .copy-trade-box {
+      background: var(--bg2);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .copy-trade-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .copy-trade-label { font-size: 13px; color: var(--text2); }
+    .copy-trade-val   { font-size: 14px; font-weight: 600; }
+    .copy-trade-val.green { color: var(--green); }
+
+    .sheet-actions { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--text);
+      color: var(--bg);
+      border: none;
+      border-radius: 14px;
+      padding: 16px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: opacity 0.15s;
+    }
+    .btn-primary:active { opacity: 0.7; }
+
+    .btn-secondary {
+      width: 100%;
+      background: var(--bg2);
+      color: var(--text);
+      border: none;
+      border-radius: 14px;
+      padding: 14px;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-secondary:active { opacity: 0.7; }
+
+    /* ── MARKET ROW ── */
+    .market-row {
+      display: flex;
+      align-items: center;
+      padding: 14px 20px;
+      gap: 14px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .market-row:active { background: var(--bg2); }
+
+    .market-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--bg2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .market-body { flex: 1; min-width: 0; }
+
+    .market-title {
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 3px;
+    }
+
+    .market-vol { font-size: 12px; color: var(--text3); }
+
+    .market-right { text-align: right; }
+
+    .market-price {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .market-change {
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+    .up   { color: var(--green); }
+    .down { color: var(--red); }
+    .flat { color: var(--text3); }
+
+    /* ── PROGRESS BAR ── */
+    .progress-bar {
+      height: 2px;
+      background: var(--bg3);
+      border-radius: 1px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--text);
+      border-radius: 1px;
+      transition: width 0.5s ease;
+    }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 430px;
+      padding-bottom: var(--safe-bot);
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex;
+    }
+
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 10px 0 8px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: var(--text3);
+      transition: color 0.15s;
+      font-family: 'Inter', sans-serif;
+      position: relative;
+    }
+    .nav-item.active { color: var(--text); }
+
+    .nav-icon  { font-size: 20px; line-height: 1; }
+    .nav-label { font-size: 10px; font-weight: 500; }
+
+    .nav-badge {
+      position: absolute;
+      top: 4px;
+      right: calc(50% - 20px);
+      background: var(--red);
+      color: white;
+      font-size: 9px;
+      font-weight: 700;
+      min-width: 16px;
+      height: 16px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+    }
+
+    /* ── EMPTY ── */
+    .empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 20px;
+      gap: 8px;
+    }
+    .empty-icon { font-size: 40px; margin-bottom: 4px; }
+    .empty-title { font-size: 16px; font-weight: 600; }
+    .empty-sub { font-size: 13px; color: var(--text3); text-align: center; }
+
+    /* ── SETTINGS ── */
+    .settings-group {
+      margin: 16px 20px;
+      background: var(--bg2);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .settings-row:last-child { border-bottom: none; }
+
+    .settings-label { font-size: 14px; font-weight: 500; }
+    .settings-sub   { font-size: 12px; color: var(--text3); margin-top: 1px; }
+    .settings-val   { font-size: 14px; color: var(--text2); font-weight: 500; }
+
+    .settings-group-label {
+      padding: 20px 20px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── SCAN LOADER ── */
+    .scan-loader {
+      height: 2px;
+      background: var(--bg2);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .scan-loader-bar {
+      height: 100%;
+      background: var(--text);
+      width: 0;
+    }
+    .scan-loader-bar.active {
+      animation: loading 1.5s ease-in-out infinite;
+    }
+    @keyframes loading {
+      0%   { width: 0%;  margin-left: 0; }
+      50%  { width: 50%; margin-left: 25%; }
+      100% { width: 0%;  margin-left: 100%; }
+    }
+
+    /* ── NOTIFICATION ── */
+    .notif {
+      position: fixed;
+      top: calc(var(--safe-top) + 10px);
+      left: 16px;
+      right: 16px;
+      max-width: 400px;
+      margin: 0 auto;
+      background: var(--text);
+      color: var(--bg);
+      border-radius: 14px;
+      padding: 14px 16px;
+      z-index: 100;
+      cursor: pointer;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+      animation: notifIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes notifIn {
+      from { opacity:0; transform: translateY(-16px) scale(0.96); }
+      to   { opacity:1; transform: translateY(0) scale(1); }
+    }
+    .notif-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+    .notif-body  { font-size: 12px; opacity: 0.75; }
+  </style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <header class="header">
+    <div class="logo">Poly<span>Watch</span></div>
+    <div class="header-actions">
+      <button class="live-pill" onclick="toggleLive()" id="livePill">
+        <div class="live-dot" id="liveDot"></div>
+        <span id="liveLabel">Live</span>
+      </button>
+      <button class="scan-btn" id="scanBtn" onclick="runScan()">Scan</button>
+    </div>
+  </header>
+
+  <div class="scan-loader"><div class="scan-loader-bar" id="scanBar"></div></div>
+
+  <!-- Summary -->
+  <div class="summary">
+    <div class="summary-label">Active signals</div>
+    <div class="summary-row">
+      <div class="summary-main" id="summaryMain">—</div>
+      <div class="summary-sub" id="summarySub">alerts detected</div>
+    </div>
+    <div class="summary-stats">
+      <div class="summary-stat">
+        <div class="summary-stat-val" id="statHigh" style="color:var(--red)">—</div>
+        <div class="summary-stat-label">High signal</div>
+      </div>
+      <div class="summary-stat">
+        <div class="summary-stat-val" id="statSpikes">—</div>
+        <div class="summary-stat-label">Odds spikes</div>
+      </div>
+      <div class="summary-stat">
+        <div class="summary-stat-val" id="statLast" style="color:var(--text3)">—</div>
+        <div class="summary-stat-label">Last scan</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('alerts',this)">Alerts</button>
+    <button class="tab" onclick="switchTab('markets',this)">Markets</button>
+    <button class="tab" onclick="switchTab('copytrades',this)">Copy trades</button>
+    <button class="tab" onclick="switchTab('settings',this)">Settings</button>
+  </div>
+
+  <div class="content" id="content"></div>
+
+  <!-- Bottom nav -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-alerts" onclick="switchTab('alerts',null,'nav-alerts')">
+      <span class="nav-icon">⚡</span>
+      <span class="nav-label">Alerts</span>
+      <span class="nav-badge" id="alertBadge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" id="nav-markets" onclick="switchTab('markets',null,'nav-markets')">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Markets</span>
+    </button>
+    <button class="nav-item" id="nav-copytrades" onclick="switchTab('copytrades',null,'nav-copytrades')">
+      <span class="nav-icon">💼</span>
+      <span class="nav-label">Trades</span>
+    </button>
+    <button class="nav-item" id="nav-settings" onclick="switchTab('settings',null,'nav-settings')">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">Settings</span>
+    </button>
+  </nav>
+
+  <!-- Detail sheet -->
+  <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet(event)">
+    <div class="sheet" id="sheet">
+      <div class="sheet-handle"></div>
+      <div id="sheetContent"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────
+const CFG = {
+  MIN_BET: 5000, HIGH_BET: 30000, MAX_PRIOR: 3, MAX_AGE: 30,
+  SPIKE: 0.10, SPIKE_WIN: 600, LOW_LIQ: 0.05, SNIPER_H: 72,
+  COPY_FRAC: 0.05, COPY_MAX: 500, COPY_MIN_P: 0.03, COPY_MAX_P: 0.80,
+  MIN_SCORE: 4,
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+const S = {
+  alerts: [], markets: [], copytrades: [], tab: 'alerts',
+  scanning: false, live: false, priceHist: {}, seenIds: new Set(),
+  newAlerts: 0, liveTimer: null,
+};
+
+// ── DEMO DATA ─────────────────────────────────────────────────────────────
+const DEMO = [
+  { id:'d1', market:'Nobel Peace Prize 2025 — Machado wins', url:'https://polymarket.com', wallet:'0xdirtycup9f3a8b2c', betUsd:68340, outcome:'YES', price:0.036, score:9, signals:['Fresh wallet','Mega bet $68,340','Odds spike +900%','Resolves in 9h'], copyUsd:500, copySkip:'', ts:new Date(Date.now()-3600000) },
+  { id:'d2', market:'Maduro ousted from Venezuela by Jan 31', url:'https://polymarket.com', wallet:'0xnewwlt8a2b9c4f1', betUsd:32000, outcome:'YES', price:0.071, score:7, signals:['Fresh wallet','Mega bet $32,000','3 wallets clustered'], copyUsd:500, copySkip:'', ts:new Date(Date.now()-7200000) },
+  { id:'d3', market:'OpenAI launches AI browser before Nov 1', url:'https://polymarket.com', wallet:'0xalphaRaccoon11f', betUsd:40000, outcome:'YES', price:0.31, score:6, signals:['Fresh wallet','Mega bet $40,000'], copyUsd:500, copySkip:'', ts:new Date(Date.now()-18000000) },
+  { id:'d4', market:'US military action vs Iran nuclear sites', url:'https://polymarket.com', wallet:'0xfresh_0xf9b1a3', betUsd:15000, outcome:'YES', price:0.04, score:5, signals:['Fresh wallet','Low liquidity 8%','Resolves in 48h'], copyUsd:500, copySkip:'', ts:new Date(Date.now()-86400000) },
+];
+
+const DEMO_MKTS = [
+  { id:'m1', question:'Fed cuts rates in March 2026', price:0.72, prev:0.61, volume:2840000, url:'https://polymarket.com' },
+  { id:'m2', question:'Ukraine ceasefire before June 2026', price:0.34, prev:0.35, volume:1200000, url:'https://polymarket.com' },
+  { id:'m3', question:'Apple AR glasses at WWDC 2026', price:0.18, prev:0.11, volume:440000, url:'https://polymarket.com' },
+  { id:'m4', question:'Bitcoin exceeds $150k before July 2026', price:0.41, prev:0.40, volume:8900000, url:'https://polymarket.com' },
+  { id:'m5', question:'UK general election called in 2026', price:0.09, prev:0.06, volume:310000, url:'https://polymarket.com' },
+];
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+function levelOf(score) {
+  if (score >= 8) return 'critical';
+  if (score >= 6) return 'high';
+  if (score >= 4) return 'medium';
+  return 'low';
+}
+
+function emojiOf(score) {
+  if (score >= 8) return '🔴';
+  if (score >= 6) return '🟠';
+  return '🟡';
+}
+
+function sigIcon(s) {
+  if (s.includes('wallet') || s.includes('Wallet')) return '👤';
+  if (s.includes('Mega') || s.includes('bet')) return '💰';
+  if (s.includes('spike') || s.includes('Odds')) return '📈';
+  if (s.includes('cluster') || s.includes('wallets')) return '🔗';
+  if (s.includes('liquid')) return '💧';
+  if (s.includes('Resolv')) return '⏱';
+  return '•';
+}
+
+function fmtTime(d) {
+  const s = Math.floor((Date.now() - d) / 1000);
+  if (s < 60)   return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s/60)}m ago`;
+  return `${Math.floor(s/3600)}h ago`;
+}
+
+function fmtVol(v) {
+  if (v >= 1e6) return `$${(v/1e6).toFixed(1)}M`;
+  if (v >= 1e3) return `$${(v/1e3).toFixed(0)}K`;
+  return `$${v}`;
+}
+
+function calcCopy(betUsd, price) {
+  if (price < CFG.COPY_MIN_P) return { usd:0, skip:`Price ${(price*100).toFixed(0)}% too low` };
+  if (price > CFG.COPY_MAX_P) return { usd:0, skip:`Price ${(price*100).toFixed(0)}% too high` };
+  return { usd: Math.min(betUsd * CFG.COPY_FRAC, CFG.COPY_MAX), skip:'' };
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function renderAlerts() {
+  const data = S.alerts.length ? S.alerts : DEMO;
+  if (!data.length) return `<div class="empty"><div class="empty-icon">⚡</div><div class="empty-title">No alerts yet</div><div class="empty-sub">Tap Scan to start monitoring Polymarket</div></div>`;
+
+  const groups = { today: [], earlier: [] };
+  data.forEach(a => {
+    const h = (Date.now() - a.ts) / 3600000;
+    (h < 24 ? groups.today : groups.earlier).push(a);
+  });
+
+  let html = '';
+  if (groups.today.length) {
+    html += `<div class="section-header">Today</div>`;
+    html += groups.today.map(alertRow).join('');
+  }
+  if (groups.earlier.length) {
+    html += `<div class="section-header">Earlier</div>`;
+    html += groups.earlier.map(alertRow).join('');
+  }
+  return html;
+}
+
+function alertRow(a) {
+  const lvl = levelOf(a.score);
+  const emoji = emojiOf(a.score);
+  return `
+  <div class="alert-row" onclick="openSheet('${a.id}')">
+    <div class="alert-icon ${lvl}">${emoji}</div>
+    <div class="alert-body">
+      <div class="alert-title">${a.market}</div>
+      <div class="alert-subtitle">
+        <span>$${a.betUsd.toLocaleString()} ${a.outcome}</span>
+        <span class="alert-dot">•</span>
+        <span>${(a.price*100).toFixed(1)}%</span>
+        <span class="alert-dot">•</span>
+        <span>${fmtTime(a.ts)}</span>
+      </div>
+    </div>
+    <div class="alert-right">
+      <div class="alert-score ${lvl}">${a.score}</div>
+      <div class="alert-level">${lvl.toUpperCase()}</div>
+    </div>
+  </div>`;
+}
+
+function renderMarkets() {
+  const data = S.markets.length ? S.markets : DEMO_MKTS;
+  if (!data.length) return `<div class="empty"><div class="empty-icon">📊</div><div class="empty-title">No market data</div><div class="empty-sub">Tap Scan to load live markets</div></div>`;
+
+  return `<div class="section-header">Active markets</div>` + data.map(m => {
+    const pct  = (m.price * 100).toFixed(1);
+    const chg  = m.price - (m.prev || m.price);
+    const cls  = chg > 0.01 ? 'up' : chg < -0.01 ? 'down' : 'flat';
+    const sign = chg > 0 ? '+' : '';
+    const chgStr = chg !== 0 ? `${sign}${(chg*100).toFixed(1)}%` : '—';
+    const icon = m.spike ? '⚡' : '📊';
+    return `
+    <div class="market-row" onclick="window.open('${m.url}','_blank')">
+      <div class="market-icon">${icon}</div>
+      <div class="market-body">
+        <div class="market-title">${m.question}</div>
+        <div class="market-vol">${fmtVol(m.volume)} volume</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="market-right">
+        <div class="market-price">${pct}%</div>
+        <div class="market-change ${cls}">${chgStr}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderCopytrades() {
+  const data = S.copytrades.length ? S.copytrades : DEMO.filter(a => a.copyUsd > 0);
+  if (!data.length) return `<div class="empty"><div class="empty-icon">💼</div><div class="empty-title">No copy trades</div><div class="empty-sub">Actionable trades will appear here</div></div>`;
+
+  return `<div class="section-header">Suggested trades</div>` + data.map(t => {
+    const pot = t.copyUsd ? Math.round(t.copyUsd / t.price - t.copyUsd) : 0;
+    const lvl = levelOf(t.score);
+    return `
+    <div class="alert-row" onclick="openSheet('${t.id}')">
+      <div class="alert-icon ${lvl}">💼</div>
+      <div class="alert-body">
+        <div class="alert-title">${t.market}</div>
+        <div class="alert-subtitle">
+          <span>Stake $${t.copyUsd?.toFixed(0)}</span>
+          <span class="alert-dot">•</span>
+          <span style="color:var(--green)">+$${pot} potential</span>
+        </div>
+      </div>
+      <div class="alert-right">
+        <div class="alert-score" style="color:var(--green)">$${t.copyUsd?.toFixed(0)}</div>
+        <div class="alert-level">STAKE</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSettings() {
+  return `
+  <div class="settings-group-label">Detection</div>
+  <div class="settings-group">
+    <div class="settings-row"><div><div class="settings-label">Min bet size</div></div><div class="settings-val">$${CFG.MIN_BET.toLocaleString()}</div></div>
+    <div class="settings-row"><div><div class="settings-label">High bet threshold</div></div><div class="settings-val">$${CFG.HIGH_BET.toLocaleString()}</div></div>
+    <div class="settings-row"><div><div class="settings-label">Odds spike alert</div></div><div class="settings-val">${CFG.SPIKE*100}%+</div></div>
+    <div class="settings-row"><div><div class="settings-label">Sniper window</div></div><div class="settings-val">${CFG.SNIPER_H}h</div></div>
+  </div>
+  <div class="settings-group-label">Copy trade sizing</div>
+  <div class="settings-group">
+    <div class="settings-row"><div><div class="settings-label">Position size</div><div class="settings-sub">% of insider's bet</div></div><div class="settings-val">${CFG.COPY_FRAC*100}%</div></div>
+    <div class="settings-row"><div><div class="settings-label">Max stake per trade</div></div><div class="settings-val">$${CFG.COPY_MAX}</div></div>
+    <div class="settings-row"><div><div class="settings-label">Entry price range</div></div><div class="settings-val">${CFG.COPY_MIN_P*100}–${CFG.COPY_MAX_P*100}%</div></div>
+  </div>
+  <div class="settings-group-label">Script</div>
+  <div class="settings-group">
+    <div class="settings-row"><div><div class="settings-label">Run monitor</div><div class="settings-sub">python3 ~/Desktop/polywatch.py</div></div></div>
+  </div>`;
+}
+
+// ── SHEET ─────────────────────────────────────────────────────────────────
+function openSheet(id) {
+  const data = [...S.alerts, ...DEMO].find(a => a.id === id);
+  if (!data) return;
+
+  const copy = data.copyUsd != null ? { usd: data.copyUsd, skip: data.copySkip } : calcCopy(data.betUsd, data.price);
+  const pot  = copy.usd ? Math.round(copy.usd / data.price - copy.usd) : 0;
+  const lvl  = levelOf(data.score);
+
+  document.getElementById('sheetContent').innerHTML = `
+    <div class="sheet-header">
+      <div class="sheet-market">${data.market}</div>
+      <div class="sheet-chips">
+        <span class="sheet-chip ${data.outcome === 'YES' ? 'green' : 'red'}">${data.outcome}</span>
+        <span class="sheet-chip">$${data.betUsd.toLocaleString()}</span>
+        <span class="sheet-chip">${(data.price*100).toFixed(1)}% implied</span>
+        <span class="sheet-chip">${fmtTime(data.ts)}</span>
+      </div>
+    </div>
+
+    <div class="sheet-section">
+      <div class="sheet-section-title">Signals detected (score ${data.score})</div>
+      <div class="sheet-signals">
+        ${data.signals.map(s => `
+          <div class="signal-row">
+            <div class="signal-icon">${sigIcon(s)}</div>
+            <div>
+              <div class="signal-text">${s}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    ${copy.usd ? `
+    <div class="sheet-section">
+      <div class="sheet-section-title">Suggested copy trade</div>
+      <div class="copy-trade-box">
+        <div class="copy-trade-row">
+          <span class="copy-trade-label">Direction</span>
+          <span class="copy-trade-val">BUY ${data.outcome}</span>
+        </div>
+        <div class="copy-trade-row">
+          <span class="copy-trade-label">Entry price</span>
+          <span class="copy-trade-val">${(data.price*100).toFixed(1)}%</span>
+        </div>
+        <div class="copy-trade-row">
+          <span class="copy-trade-label">Suggested stake</span>
+          <span class="copy-trade-val">$${copy.usd.toFixed(0)}</span>
+        </div>
+        <div class="copy-trade-row" style="margin-bottom:0">
+          <span class="copy-trade-label">If correct</span>
+          <span class="copy-trade-val green">+$${pot}</span>
+        </div>
+      </div>
+    </div>` : copy.skip ? `
+    <div class="sheet-section">
+      <div class="sheet-section-title">Copy trade</div>
+      <div style="font-size:13px;color:var(--text3)">${copy.skip}</div>
+    </div>` : ''}
+
+    <div class="sheet-actions">
+      <a class="btn-primary" href="${data.url}" target="_blank">Bet on Polymarket ↗</a>
+      <button class="btn-secondary" onclick="copyToClipboard('${data.wallet}', this)">Copy wallet address</button>
+    </div>`;
+
+  document.getElementById('sheetOverlay').classList.add('open');
+}
+
+function closeSheet(e) {
+  if (e.target === document.getElementById('sheetOverlay')) {
+    document.getElementById('sheetOverlay').classList.remove('open');
+  }
+}
+
+function copyToClipboard(text, btn) {
+  navigator.clipboard?.writeText(text).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+
+// ── TABS ─────────────────────────────────────────────────────────────────
+function switchTab(tab, tabEl, navId) {
+  S.tab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  if (tabEl) tabEl.classList.add('active');
+  else {
+    const idx = ['alerts','markets','copytrades','settings'].indexOf(tab);
+    document.querySelectorAll('.tab')[idx]?.classList.add('active');
+  }
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  (document.getElementById(navId || `nav-${tab}`))?.classList.add('active');
+  if (tab === 'alerts') { S.newAlerts = 0; updateBadge(); }
+  render();
+}
+
+function render() {
+  const fns = { alerts: renderAlerts, markets: renderMarkets, copytrades: renderCopytrades, settings: renderSettings };
+  document.getElementById('content').innerHTML = (fns[S.tab] || renderAlerts)();
+
+  const data    = S.alerts.length ? S.alerts : DEMO;
+  const mkts    = S.markets.length ? S.markets : DEMO_MKTS;
+  const total   = data.length;
+  const high    = data.filter(a => a.score >= 6).length;
+  const spikes  = mkts.filter(m => m.spike).length;
+
+  document.getElementById('summaryMain').textContent = total;
+  document.getElementById('statHigh').textContent    = high;
+  document.getElementById('statSpikes').textContent  = spikes;
+}
+
+function updateBadge() {
+  const b = document.getElementById('alertBadge');
+  b.style.display = S.newAlerts > 0 ? 'flex' : 'none';
+  b.textContent   = S.newAlerts;
+}
+
+// ── API + SCAN ────────────────────────────────────────────────────────────
+async function runScan() {
+  if (S.scanning) return;
+  S.scanning = true;
+
+  const btn = document.getElementById('scanBtn');
+  const bar = document.getElementById('scanBar');
+  btn.disabled = true;
+  btn.textContent = 'Scanning…';
+  bar.className = 'scan-loader-bar active';
+
+  try {
+    const markets = await fetch('https://gamma-api.polymarket.com/markets?active=true&limit=100&order=volumeNum&ascending=false').then(r => r.json());
+
+    const mktData = [];
+    for (const m of markets.slice(0, 100)) {
+      const mid   = m.conditionId || m.id;
+      const price = parseFloat((Array.isArray(m.outcomePrices) ? m.outcomePrices[0] : null) || m.lastTradePrice || 0.5);
+      const vol   = parseFloat(m.volumeNum || m.volume || 0);
+      const url   = `https://polymarket.com/event/${m.slug || mid}`;
+
+      if (!S.priceHist[mid]) S.priceHist[mid] = [];
+      S.priceHist[mid].push({ ts: Date.now(), price });
+      S.priceHist[mid] = S.priceHist[mid].filter(p => Date.now() - p.ts < 1800000);
+
+      const hist    = S.priceHist[mid];
+      const cutoff  = Date.now() - CFG.SPIKE_WIN * 1000;
+      const old     = hist.filter(p => p.ts >= cutoff);
+      let spike = false;
+      if (old.length > 1) {
+        const base = old[0].price;
+        spike = base > 0 && Math.abs(price - base) / base >= CFG.SPIKE;
+      }
+
+      mktData.push({ id: mid, question: m.question || mid, price, prev: hist.length > 1 ? hist[hist.length-2].price : price, volume: vol, spike, url });
+
+      try {
+        const trades = await fetch(`https://clob.polymarket.com/trades?market=${mid}&limit=30`).then(r => r.json()).catch(() => []);
+        const tradeArr = Array.isArray(trades) ? trades : (trades.data || []);
+        for (const t of tradeArr) await processTrade(t, m, mid, m.question || mid, url, vol);
+      } catch(e) {}
+    }
+
+    S.markets = mktData.sort((a,b) => b.volume - a.volume);
+    document.getElementById('statLast').textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+
+  } catch(e) {
+    console.warn('Scan failed, using demo data');
+  }
+
+  S.scanning = false;
+  btn.disabled = false;
+  btn.textContent = 'Scan';
+  bar.className = 'scan-loader-bar';
+  render();
+}
+
+async function processTrade(trade, market, mid, question, url, vol) {
+  const tid = trade.id || trade.transactionHash || '';
+  if (tid && S.seenIds.has(tid)) return;
+  if (tid) S.seenIds.add(tid);
+
+  const side = (trade.side || trade.type || '').toUpperCase();
+  if (side && !['BUY','TAKER',''].includes(side)) return;
+
+  const size = parseFloat(trade.usdcSize || trade.size || trade.amount || 0) || (parseFloat(trade.price||0) * parseFloat(trade.shares || trade.outcomeTokensTraded || 0));
+  if (size < CFG.MIN_BET) return;
+
+  const wallet = trade.maker || trade.takerAddress || trade.transactorAddress || trade.owner || '';
+  if (!wallet) return;
+
+  const price   = parseFloat(trade.price || 0.5);
+  const outcome = trade.outcome || 'YES';
+
+  let hist = { marketCount: 0, firstTs: null };
+  try {
+    const r = await fetch(`https://gamma-api.polymarket.com/trades?maker=${wallet}&limit=500`);
+    const d = await r.json();
+    if (Array.isArray(d) && d.length) {
+      const mkts = new Set();
+      let earliest = null;
+      for (const t of d) {
+        const m2 = t.market || t.marketId || t.conditionId;
+        if (m2) mkts.add(m2);
+        const raw = t.timestamp || t.createdAt;
+        if (raw) { const dt = new Date(raw); if (!earliest || dt < earliest) earliest = dt; }
+      }
+      hist = { marketCount: mkts.size, firstTs: earliest };
+    }
+  } catch(e) {}
+
+  if (hist.marketCount > CFG.MAX_PRIOR) return;
+  const ageDays = hist.firstTs ? (Date.now() - hist.firstTs) / 86400000 : null;
+
+  const sigWallet = hist.marketCount <= CFG.MAX_PRIOR && (ageDays === null || ageDays <= CFG.MAX_AGE);
+  const sigMega   = size >= CFG.HIGH_BET;
+  const sigLiq    = vol > 0 && (size / vol) >= CFG.LOW_LIQ;
+
+  let score = 0;
+  if (sigWallet) score += 3;
+  if (sigMega)   score += 2;
+  if (sigLiq)    score += 2;
+  if (score < CFG.MIN_SCORE) return;
+
+  const signals = [];
+  if (sigWallet) signals.push(`Fresh wallet${ageDays ? ` (${Math.round(ageDays)}d old)` : ''}`);
+  if (sigMega)   signals.push(`Mega bet $${size.toLocaleString(undefined,{maximumFractionDigits:0})}`);
+  if (sigLiq)    signals.push(`Low liquidity bet (${(size/vol*100).toFixed(1)}% of volume)`);
+
+  const copy = calcCopy(size, price);
+  const alert = { id: tid || `${wallet}-${Date.now()}`, market: question, url, wallet, betUsd: size, outcome, price, score, signals, copyUsd: copy.usd, copySkip: copy.skip, ts: new Date() };
+
+  S.alerts.unshift(alert);
+  if (copy.usd) S.copytrades.unshift(alert);
+  if (S.tab !== 'alerts') { S.newAlerts++; updateBadge(); }
+  showNotif(alert);
+}
+
+// ── LIVE MODE ─────────────────────────────────────────────────────────────
+function toggleLive() {
+  S.live = !S.live;
+  const dot   = document.getElementById('liveDot');
+  const label = document.getElementById('liveLabel');
+  if (S.live) {
+    dot.className = 'live-dot on';
+    label.textContent = 'Live';
+    runScan();
+    S.liveTimer = setInterval(runScan, 30000);
+  } else {
+    dot.className = 'live-dot';
+    label.textContent = 'Live';
+    clearInterval(S.liveTimer);
+  }
+}
+
+// ── NOTIFICATION ──────────────────────────────────────────────────────────
+function showNotif(a) {
+  document.querySelector('.notif')?.remove();
+  const el = document.createElement('div');
+  el.className = 'notif';
+  el.innerHTML = `<div class="notif-title">⚡ Insider signal — score ${a.score}</div><div class="notif-body">${a.market.slice(0,70)}${a.market.length>70?'…':''}</div>`;
+  el.onclick = () => { switchTab('alerts'); openSheet(a.id); el.remove(); };
+  document.getElementById('app').appendChild(el);
+  setTimeout(() => el.remove(), 5000);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
